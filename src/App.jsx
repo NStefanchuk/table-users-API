@@ -1,8 +1,16 @@
 import { useState, useEffect } from 'react'
 import {
-  Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  TextField, Button, Paper
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TextField,
+  Button,
+  Paper,
 } from '@mui/material'
+import User from './components/User'
 
 function App() {
   const [users, setUsers] = useState([])
@@ -12,6 +20,7 @@ function App() {
     age: '',
     email: '',
   })
+
 
   const handleChangeNewUser = (e) => {
     const { name, value } = e.target
@@ -45,10 +54,14 @@ function App() {
     }
   }
 
+
+
   useEffect(() => {
     const getUsers = async () => {
       try {
-        const res = await fetch('https://68d45231214be68f8c6902f0.mockapi.io/users')
+        const res = await fetch(
+          'https://68d45231214be68f8c6902f0.mockapi.io/users'
+        )
         const usersData = await res.json()
         setUsers(usersData)
       } catch (e) {
@@ -59,28 +72,36 @@ function App() {
   }, [])
 
   return (
-    <TableContainer component={Paper} sx={{ maxWidth: 900, margin: '20px auto' }}>
+    <TableContainer
+      component={Paper}
+      sx={{ maxWidth: 900, margin: '20px auto' }}
+    >
       <Table>
         <TableHead>
           <TableRow>
-            <TableCell><b>Name</b></TableCell>
-            <TableCell><b>Surname</b></TableCell>
-            <TableCell><b>Age</b></TableCell>
-            <TableCell><b>Email</b></TableCell>
+            <TableCell>
+              <b>Name</b>
+            </TableCell>
+            <TableCell>
+              <b>Surname</b>
+            </TableCell>
+            <TableCell>
+              <b>Age</b>
+            </TableCell>
+            <TableCell>
+              <b>Email</b>
+            </TableCell>
+            <TableCell>
+              <b>Actions</b>
+            </TableCell>
             <TableCell></TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {users.map((user) => (
-            <TableRow key={user.id}>
-              <TableCell>{user.name}</TableCell>
-              <TableCell>{user.surname}</TableCell>
-              <TableCell>{user.age}</TableCell>
-              <TableCell>{user.email}</TableCell>
-              <TableCell></TableCell>
-            </TableRow>
+            <User userProp={user}/>
           ))}
-          
+
           <TableRow>
             <TableCell>
               <TextField
@@ -119,7 +140,11 @@ function App() {
               />
             </TableCell>
             <TableCell>
-              <Button variant="contained" onClick={handleAddUser}>
+              <Button
+                variant="contained"
+                color="success"
+                onClick={handleAddUser}
+              >
                 ADD
               </Button>
             </TableCell>
