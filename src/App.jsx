@@ -21,10 +21,13 @@ function App() {
     email: '',
   })
 
-
   const handleChangeNewUser = (e) => {
     const { name, value } = e.target
     setNewUser({ ...newUser, [name]: value })
+  }
+
+  const handleUserUpdated = (updated) => {
+    setUsers((prev) => prev.map((u) => (u.id === updated.id ? updated : u)))
   }
 
   const handleAddUser = async () => {
@@ -53,8 +56,6 @@ function App() {
       console.error(e)
     }
   }
-
-
 
   useEffect(() => {
     const getUsers = async () => {
@@ -99,9 +100,8 @@ function App() {
         </TableHead>
         <TableBody>
           {users.map((user) => (
-            <User userProp={user}/>
+            <User key={user.id} userProp={user} onUpdated={handleUserUpdated} />
           ))}
-
           <TableRow>
             <TableCell>
               <TextField

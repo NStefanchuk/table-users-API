@@ -1,52 +1,93 @@
-import React from 'react'
-import { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { TableCell, TableRow, TextField, Button } from '@mui/material'
+const BASE_URL = 'https://68d45231214be68f8c6902f0.mockapi.io/users'
 
-const User = ({ userProp }) => {
+const User = ({ userProp, onUpdated = () => {} }) => {
   const [isEditing, setIsEditing] = useState(false)
-  const [editUserData, setEditUserData] = useState({...userProp})
+  const [editUserData, setEditUserData] = useState({ ...userProp })
+
+  useEffect(() => {
+    if (!isEditing) setEditUserData({ ...userProp })
+  }, [userProp, isEditing])
 
   const handleEditUser = () => {
-    setIsEditing(!isEditing)
+    setEditUserData({ ...userProp })
+    setIsEditing((prev) => !prev)
   }
 
-    const handleChangeEditUser = (e) => {
+  const handleChangeEditUser = (e) => {
     const { name, value } = e.target
     setEditUserData({ ...editUserData, [name]: value })
   }
 
-  const handleUpdateUser = () => {
-    if (!editUserData.name || !editUserData.surname || !editUserData.email) return
+  const handleUpdateUser = async () => {
+    if (!editUserData.name || !editUserData.surname || !editUserData.email)
+      return
     try {
-        
-    } catch (e) {
-       console.error(e) 
-    }
-  };
+      // если age должен быть числом на MockAPI — приведём тип:
+      const payload = {
+        ...editUserData,
+        age: editUserData.age === '' ? '' : Number(editUserData.age),
+      }
 
+      const res = await fetch(`${BASE_URL}/${editUserData.id}`, {
+        method: 'PUT', // или 'PUT' если отправляешь весь объект
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+
+      if (!res.ok) throw new Error(`Update failed: ${res.status}`)
+      const updated = await res.json()
+
+      onUpdated(updated) // сообщаем родителю → он обновит список
+      setIsEditing(false) // выходим из режима редактирования
+    } catch (e) {
+      console.error(e)
+    }
+  }
 
   return (
     <TableRow key={userProp.id}>
       {isEditing ? (
         <>
           <TableCell>
-            <TextField name="name" size="small" value = {editUserData.name} onChange={handleChangeEditUser}/>
+            <TextField
+              name="name"
+              size="small"
+              value={editUserData.name}
+              onChange={handleChangeEditUser}
+            />
           </TableCell>
           <TableCell>
-            <TextField name="surname" size="small" value = {editUserData.surname} onChange={handleChangeEditUser}/>
+            <TextField
+              name="surname"
+              size="small"
+              value={editUserData.surname}
+              onChange={handleChangeEditUser}
+            />
           </TableCell>
           <TableCell>
-            <TextField name="age" size="small" value = {editUserData.age} onChange={handleChangeEditUser}/>
+            <TextField
+              name="age"
+              size="small"
+              value={editUserData.age}
+              onChange={handleChangeEditUser}
+            />
           </TableCell>
           <TableCell>
-            <TextField name="email" size="small" value = {editUserData.email} onChange={handleChangeEditUser}/>
+            <TextField
+              name="email"
+              size="small"
+              value={editUserData.email}
+              onChange={handleChangeEditUser}
+            />
           </TableCell>
-          <TableCell>
+          <TableCell sx={{ display: 'flex', gap: 1 }}>
             <Button
               variant="contained"
               size="small"
               color="success"
-              onClick={handleEditUser}
+              onClick={handleUpdateUser}
             >
               SAVE
             </Button>
@@ -54,7 +95,7 @@ const User = ({ userProp }) => {
               variant="outlined"
               color="error"
               size="small"
-              onClick={handleEditUser}
+              onClick={() => { setEditUserData({ ...userProp }); setIsEditing(false); }}
             >
               CANCEL
             </Button>
