@@ -2,7 +2,12 @@ import React, { useState, useEffect } from 'react'
 import { TableCell, TableRow, TextField, Button } from '@mui/material'
 const BASE_URL = 'https://68d45231214be68f8c6902f0.mockapi.io/users'
 
-const User = ({ userProp, onUpdated = () => {} }) => {
+const User = ({
+  userProp,
+  onUpdated = () => {},
+  onDelete = () => {},
+  deleting = false,
+}) => {
   const [isEditing, setIsEditing] = useState(false)
   const [editUserData, setEditUserData] = useState({ ...userProp })
 
@@ -95,7 +100,10 @@ const User = ({ userProp, onUpdated = () => {} }) => {
               variant="outlined"
               color="error"
               size="small"
-              onClick={() => { setEditUserData({ ...userProp }); setIsEditing(false); }}
+              onClick={() => {
+                setEditUserData({ ...userProp })
+                setIsEditing(false)
+              }}
             >
               CANCEL
             </Button>
@@ -111,8 +119,14 @@ const User = ({ userProp, onUpdated = () => {} }) => {
             <Button variant="contained" size="small" onClick={handleEditUser}>
               EDIT
             </Button>
-            <Button variant="contained" size="small" color="error">
-              DELETE
+            <Button
+              variant="contained"
+              size="small"
+              color="error"
+              onClick={onDelete} // <-- вызов удаления
+              disabled={deleting} // <-- блокируем на время
+            >
+              {deleting ? 'DELETING…' : 'DELETE'}
             </Button>
           </TableCell>
         </>

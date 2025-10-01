@@ -12,8 +12,11 @@ import {
 } from '@mui/material'
 import User from './components/User'
 
+const BASE_URL = 'https://68d45231214be68f8c6902f0.mockapi.io/users'
+
 function App() {
   const [users, setUsers] = useState([])
+  const [busyId, setBusyId] = useState(null)
   const [newUser, setNewUser] = useState({
     name: '',
     surname: '',
@@ -28,6 +31,25 @@ function App() {
 
   const handleUserUpdated = (updated) => {
     setUsers((prev) => prev.map((u) => (u.id === updated.id ? updated : u)))
+  }
+
+  const handleDeleteUser = async (id) => {
+    // оптимистично уберём строку из UI
+    setBusyId(id)
+    const prev = users
+    setUsers((list) => list.filter((u) => u.id !== id))
+
+    try {
+      const res = await fetch(`${BASE_URL}/${id}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error('Failed to delete user')
+    } catch (e) {
+      console.error(e)
+      // откат, если не получилось удалить на сервере
+      setUsers(prev)
+      alert('Не удалось удалить пользователя. Попробуйте ещё раз.')
+    } finally {
+      setBusyId(null)
+    }
   }
 
   const handleAddUser = async () => {
@@ -100,7 +122,13 @@ function App() {
         </TableHead>
         <TableBody>
           {users.map((user) => (
-            <User key={user.id} userProp={user} onUpdated={handleUserUpdated} />
+            <User
+              key={user.id}
+              userProp={user}
+              onUpdated={handleUserUpdated}
+              onDelete={() => handleDeleteUser(user.id)}
+              deleting={busyId === user.id}
+            />
           ))}
           <TableRow>
             <TableCell>
