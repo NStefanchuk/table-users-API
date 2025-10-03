@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { TableCell, TableRow, TextField, Button } from '@mui/material'
+import { TableCell, TableRow, TextField, Button, Checkbox } from '@mui/material'
 const BASE_URL = 'https://68d45231214be68f8c6902f0.mockapi.io/users'
 
 const User = ({
@@ -7,6 +7,9 @@ const User = ({
   onUpdated = () => {},
   onDelete = () => {},
   deleting = false,
+  // NEW:
+  selected = false,
+  onToggleSelect = () => {},
 }) => {
   const [isEditing, setIsEditing] = useState(false)
   const [editUserData, setEditUserData] = useState({ ...userProp })
@@ -26,84 +29,58 @@ const User = ({
   }
 
   const handleUpdateUser = async () => {
-    if (!editUserData.name || !editUserData.surname || !editUserData.email)
-      return
+    if (!editUserData.name || !editUserData.surname || !editUserData.email) return
     try {
-      // если age должен быть числом на MockAPI — приведём тип:
       const payload = {
         ...editUserData,
         age: editUserData.age === '' ? '' : Number(editUserData.age),
       }
-
       const res = await fetch(`${BASE_URL}/${editUserData.id}`, {
-        method: 'PUT', // или 'PUT' если отправляешь весь объект
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       })
-
       if (!res.ok) throw new Error(`Update failed: ${res.status}`)
       const updated = await res.json()
-
-      onUpdated(updated) // сообщаем родителю → он обновит список
-      setIsEditing(false) // выходим из режима редактирования
+      onUpdated(updated)
+      setIsEditing(false)
     } catch (e) {
       console.error(e)
     }
   }
 
   return (
-    <TableRow key={userProp.id}>
+    <TableRow key={userProp.id} hover>
+      {/* Selection checkbox (always visible) */}
+      <TableCell width={56}>
+        <Checkbox
+          checked={selected}
+          onChange={onToggleSelect}
+          inputProps={{ 'aria-label': `Select ${userProp.name} ${userProp.surname}` }}
+        />
+      </TableCell>
+
       {isEditing ? (
         <>
           <TableCell>
-            <TextField
-              name="name"
-              size="small"
-              value={editUserData.name}
-              onChange={handleChangeEditUser}
-            />
+            <TextField name="name" size="small" value={editUserData.name} onChange={handleChangeEditUser} />
           </TableCell>
           <TableCell>
-            <TextField
-              name="surname"
-              size="small"
-              value={editUserData.surname}
-              onChange={handleChangeEditUser}
-            />
+            <TextField name="surname" size="small" value={editUserData.surname} onChange={handleChangeEditUser} />
           </TableCell>
           <TableCell>
-            <TextField
-              name="age"
-              size="small"
-              value={editUserData.age}
-              onChange={handleChangeEditUser}
-            />
+            <TextField name="age" size="small" value={editUserData.age} onChange={handleChangeEditUser} />
           </TableCell>
           <TableCell>
-            <TextField
-              name="email"
-              size="small"
-              value={editUserData.email}
-              onChange={handleChangeEditUser}
-            />
+            <TextField name="email" size="small" value={editUserData.email} onChange={handleChangeEditUser} />
           </TableCell>
           <TableCell sx={{ display: 'flex', gap: 1 }}>
-            <Button
-              variant="contained"
-              size="small"
-              color="success"
-              onClick={handleUpdateUser}
-            >
-              SAVE
-            </Button>
+            <Button variant="contained" size="small" color="success" onClick={handleUpdateUser}>SAVE</Button>
             <Button
               variant="outlined"
               color="error"
               size="small"
-              onClick={() => {
-                setEditUserData({ ...userProp })
-                setIsEditing(false)
-              }}
+              onClick={() => { setEditUserData({ ...userProp }); setIsEditing(false) }}
             >
               CANCEL
             </Button>
@@ -116,15 +93,13 @@ const User = ({
           <TableCell>{userProp.age}</TableCell>
           <TableCell>{userProp.email}</TableCell>
           <TableCell style={{ display: 'flex', gap: '5px' }}>
-            <Button variant="contained" size="small" onClick={handleEditUser}>
-              EDIT
-            </Button>
+            <Button variant="contained" size="small" onClick={handleEditUser}>EDIT</Button>
             <Button
               variant="contained"
               size="small"
               color="error"
-              onClick={onDelete} // <-- вызов удаления
-              disabled={deleting} // <-- блокируем на время
+              onClick={onDelete}
+              disabled={deleting}
             >
               {deleting ? 'DELETING…' : 'DELETE'}
             </Button>

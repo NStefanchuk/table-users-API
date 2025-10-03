@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import {
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  TextField, Button, Paper, Toolbar, Stack, Typography, Slider, IconButton, Box
+  TextField, Button, Paper, Toolbar, Stack, Typography, Slider, IconButton, Box, Checkbox
 } from '@mui/material'
 import ClearIcon from '@mui/icons-material/Clear'
 import User from './components/User'
@@ -14,6 +14,8 @@ const norm = (s = '') => String(s).toLowerCase().trim()
 function App() {
   const [users, setUsers] = useState([])
   const [busyId, setBusyId] = useState(null)
+  const [bulkDeleting, setBulkDeleting] = useState(false)
+  const [selectedIds, setSelectedIds] = useState(new Set()) // <— NEW
   const [newUser, setNewUser] = useState({ name: '', surname: '', age: '', email: '' })
 
   // ---- filters ----
@@ -52,6 +54,31 @@ function App() {
     })
   }, [users, search, ageRange])
 
+  // ---- selection helpers ----
+  const isSelected = (id) => selectedIds.has(id)
+  const toggleSelect = (id) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
+  }
+  const clearSelection = () => setSelectedIds(new Set())
+
+  const toggleSelectAllVisible = () => {
+    setSelectedIds(prev => {
+      const visibleIds = filteredUsers.map(u => u.id)
+      const allSelected = visibleIds.every(id => prev.has(id))
+      const next = new Set(prev)
+      if (allSelected) {
+        visibleIds.forEach(id => next.delete(id))
+      } else {
+        visibleIds.forEach(id => next.add(id))
+      }
+      return next
+    })
+  }
+
   const handleChangeNewUser = (e) => {
     const { name, value } = e.target
     setNewUser({ ...newUser, [name]: value })
@@ -68,12 +95,45 @@ function App() {
     try {
       const res = await fetch(`${BASE_URL}/${id}`, { method: 'DELETE' })
       if (!res.ok) throw new Error('Failed to delete user')
+      // also unselect if it was selected
+      setSelectedIds(s => {
+        const next = new Set(s); next.delete(id); return next
+      })
     } catch (e) {
       console.error(e)
       setUsers(prev)
       alert('Could not delete the user. Please try again.')
     } finally {
       setBusyId(null)
+    }
+  }
+
+  const handleDeleteSelected = async () => {
+    if (selectedIds.size === 0) return
+    setBulkDeleting(true)
+    const ids = Array.from(selectedIds)
+    const prev = users
+
+    // optimistic remove
+    setUsers(list => list.filter(u => !selectedIds.has(u.id)))
+
+    try {
+      const results = await Promise.allSettled(
+        ids.map(id => fetch(`${BASE_URL}/${id}`, { method: 'DELETE' }))
+      )
+      const failed = results.some(r => r.status === 'rejected' || (r.value && !r.value.ok))
+      if (failed) {
+        setUsers(prev)
+        alert('Some deletions failed. Please try again.')
+      } else {
+        clearSelection()
+      }
+    } catch (e) {
+      console.error(e)
+      setUsers(prev)
+      alert('Failed to delete selected users.')
+    } finally {
+      setBulkDeleting(false)
     }
   }
 
@@ -115,10 +175,13 @@ function App() {
     setAgeRange([minAge, maxAge])
   }
 
+  const allVisibleSelected =
+    filteredUsers.length > 0 && filteredUsers.every(u => selectedIds.has(u.id))
+  const someVisibleSelected =
+    filteredUsers.some(u => selectedIds.has(u.id)) && !allVisibleSelected
+
   return (
-    // Allow the value label to overflow the rounded Paper container
     <TableContainer component={Paper} sx={{ maxWidth: 900, m: '20px auto', overflow: 'visible' }}>
-      {/* Put filters in their own Box with visible overflow so Slider labels aren’t clipped */}
       <Box sx={{ px: 2, pt: 2, overflow: 'visible' }}>
         <Toolbar disableGutters sx={{ gap: 2, flexWrap: 'wrap', overflow: 'visible' }}>
           <Typography variant="h6" sx={{ mr: 'auto' }}>Users</Typography>
@@ -140,19 +203,36 @@ function App() {
               min={minAge}
               max={maxAge}
               onChange={(_, v) => setAgeRange(v)}
-              valueLabelDisplay="auto"      // shows the bubble only when sliding
+              valueLabelDisplay="auto"
               disableSwap
             />
             <IconButton aria-label="Reset filters" onClick={resetFilters} size="small">
               <ClearIcon />
             </IconButton>
           </Stack>
+
+          <Button
+            variant="outlined"
+            color="error"
+            onClick={handleDeleteSelected}
+            disabled={selectedIds.size === 0 || bulkDeleting}
+          >
+            {bulkDeleting ? 'DELETING…' : `DELETE SELECTED (${selectedIds.size})`}
+          </Button>
         </Toolbar>
       </Box>
 
       <Table>
         <TableHead>
           <TableRow>
+            <TableCell width={56}>
+              <Checkbox
+                indeterminate={someVisibleSelected}
+                checked={allVisibleSelected}
+                onChange={toggleSelectAllVisible}
+                inputProps={{ 'aria-label': 'Select all visible users' }}
+              />
+            </TableCell>
             <TableCell><b>Name</b></TableCell>
             <TableCell><b>Surname</b></TableCell>
             <TableCell><b>Age</b></TableCell>
@@ -167,6 +247,8 @@ function App() {
             <User
               key={user.id}
               userProp={user}
+              selected={isSelected(user.id)}
+              onToggleSelect={() => toggleSelect(user.id)}
               onUpdated={handleUserUpdated}
               onDelete={() => handleDeleteUser(user.id)}
               deleting={busyId === user.id}
@@ -175,6 +257,7 @@ function App() {
 
           {/* Add new user row */}
           <TableRow>
+            <TableCell /> {/* empty to align with selection column */}
             <TableCell>
               <TextField size="small" label="Name" name="name" value={newUser.name} onChange={handleChangeNewUser} />
             </TableCell>
