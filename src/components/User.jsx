@@ -1,15 +1,13 @@
 import React, { useState, useEffect } from 'react'
 import { TableCell, TableRow, TextField, Button, Checkbox } from '@mui/material'
 
-const BASE_URL = 'https://68d45231214be68f8c6902f0.mockapi.io/users'
-
 const User = ({
   userProp,
-  onUpdated = () => {},
-  onDelete = () => {},
-  deleting = false,
   selected = false,
   onToggleSelect = () => {},
+  onSave = () => {},      // <-- NEW: сохраняем наверх
+  onDelete = () => {},
+  deleting = false,
 }) => {
   const [isEditing, setIsEditing] = useState(false)
   const [editUserData, setEditUserData] = useState({ ...userProp })
@@ -28,30 +26,15 @@ const User = ({
     setEditUserData({ ...editUserData, [name]: value })
   }
 
-  const handleUpdateUser = async () => {
+  const handleSave = async () => {
     if (!editUserData.name || !editUserData.surname || !editUserData.email) return
-    try {
-      const payload = {
-        ...editUserData,
-        age: editUserData.age === '' ? '' : Number(editUserData.age),
-      }
-      const res = await fetch(`${BASE_URL}/${editUserData.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      })
-      if (!res.ok) throw new Error(`Update failed: ${res.status}`)
-      const updated = await res.json()
-      onUpdated(updated)
-      setIsEditing(false)
-    } catch (e) {
-      console.error(e)
-    }
+    await onSave(editUserData)       // делегируем наверх
+    setIsEditing(false)
   }
 
   return (
     <TableRow key={userProp.id} hover>
-      {/* Selection checkbox (always visible) */}
+      {/* Selection */}
       <TableCell width={56}>
         <Checkbox
           checked={selected}
@@ -75,7 +58,7 @@ const User = ({
             <TextField name="email" size="small" value={editUserData.email} onChange={handleChangeEditUser} />
           </TableCell>
           <TableCell sx={{ display: 'flex', gap: 1 }}>
-            <Button variant="contained" size="small" color="success" onClick={handleUpdateUser}>SAVE</Button>
+            <Button variant="contained" size="small" color="success" onClick={handleSave}>SAVE</Button>
             <Button
               variant="outlined"
               color="error"
