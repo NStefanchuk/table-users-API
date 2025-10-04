@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import {
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  TextField, Button, Paper, Toolbar, Stack, Typography, Slider, IconButton, Box, Checkbox
+  TextField, Button, Paper, Toolbar, Stack, Typography, Slider, IconButton, Box, Checkbox, TableSortLabel
 } from '@mui/material'
 import ClearIcon from '@mui/icons-material/Clear'
 import User from './components/User'
@@ -15,13 +15,25 @@ function App() {
   const [users, setUsers] = useState([])
   const [busyId, setBusyId] = useState(null)
   const [bulkDeleting, setBulkDeleting] = useState(false)
-  const [selectedIds, setSelectedIds] = useState(new Set()) // <— NEW
+  const [selectedIds, setSelectedIds] = useState(new Set())
   const [newUser, setNewUser] = useState({ name: '', surname: '', age: '', email: '' })
 
   // ---- filters ----
   const [search, setSearch] = useState('')
   const [ageRange, setAgeRange] = useState([0, 100])
 
+  // ---- sorting ----
+  const [sort, setSort] = useState({ field: null, direction: 'asc' })
+  const handleSort = (field) => {
+    setSort((prev) => {
+      if (prev.field === field) {
+        return { field, direction: prev.direction === 'asc' ? 'desc' : 'asc' }
+      }
+      return { field, direction: 'asc' }
+    })
+  }
+
+  // min/max age for slider
   const [minAge, maxAge] = useMemo(() => {
     if (!users.length) return [0, 100]
     const ages = users.map(u => Number(u.age)).filter(n => Number.isFinite(n))
@@ -37,6 +49,7 @@ function App() {
     })
   }, [minAge, maxAge])
 
+  // filter
   const filteredUsers = useMemo(() => {
     const q = norm(search)
     const [lo, hi] = ageRange
@@ -54,6 +67,26 @@ function App() {
     })
   }, [users, search, ageRange])
 
+  // sort (applied to filtered)
+  const sortedUsers = useMemo(() => {
+    if (!sort.field) return filteredUsers
+    const arr = [...filteredUsers]
+    const { field, direction } = sort
+
+    arr.sort((a, b) => {
+      if (field === 'age') {
+        const an = Number(a.age) || 0
+        const bn = Number(b.age) || 0
+        return an - bn
+      }
+      const av = String(a[field] ?? '')
+      const bv = String(b[field] ?? '')
+      return av.localeCompare(bv, undefined, { sensitivity: 'base' })
+    })
+
+    return direction === 'desc' ? arr.reverse() : arr
+  }, [filteredUsers, sort])
+
   // ---- selection helpers ----
   const isSelected = (id) => selectedIds.has(id)
   const toggleSelect = (id) => {
@@ -67,7 +100,7 @@ function App() {
 
   const toggleSelectAllVisible = () => {
     setSelectedIds(prev => {
-      const visibleIds = filteredUsers.map(u => u.id)
+      const visibleIds = sortedUsers.map(u => u.id)
       const allSelected = visibleIds.every(id => prev.has(id))
       const next = new Set(prev)
       if (allSelected) {
@@ -79,6 +112,7 @@ function App() {
     })
   }
 
+  // CRUD handlers
   const handleChangeNewUser = (e) => {
     const { name, value } = e.target
     setNewUser({ ...newUser, [name]: value })
@@ -95,7 +129,6 @@ function App() {
     try {
       const res = await fetch(`${BASE_URL}/${id}`, { method: 'DELETE' })
       if (!res.ok) throw new Error('Failed to delete user')
-      // also unselect if it was selected
       setSelectedIds(s => {
         const next = new Set(s); next.delete(id); return next
       })
@@ -157,6 +190,7 @@ function App() {
     }
   }
 
+  // initial load
   useEffect(() => {
     const getUsers = async () => {
       try {
@@ -176,12 +210,14 @@ function App() {
   }
 
   const allVisibleSelected =
-    filteredUsers.length > 0 && filteredUsers.every(u => selectedIds.has(u.id))
+    sortedUsers.length > 0 && sortedUsers.every(u => selectedIds.has(u.id))
   const someVisibleSelected =
-    filteredUsers.some(u => selectedIds.has(u.id)) && !allVisibleSelected
+    sortedUsers.some(u => selectedIds.has(u.id)) && !allVisibleSelected
 
   return (
+    // Allow the value label to overflow the rounded Paper container
     <TableContainer component={Paper} sx={{ maxWidth: 900, m: '20px auto', overflow: 'visible' }}>
+      {/* Filters header */}
       <Box sx={{ px: 2, pt: 2, overflow: 'visible' }}>
         <Toolbar disableGutters sx={{ gap: 2, flexWrap: 'wrap', overflow: 'visible' }}>
           <Typography variant="h6" sx={{ mr: 'auto' }}>Users</Typography>
@@ -233,17 +269,54 @@ function App() {
                 inputProps={{ 'aria-label': 'Select all visible users' }}
               />
             </TableCell>
-            <TableCell><b>Name</b></TableCell>
-            <TableCell><b>Surname</b></TableCell>
-            <TableCell><b>Age</b></TableCell>
-            <TableCell><b>Email</b></TableCell>
+
+            <TableCell sortDirection={sort.field === 'name' ? sort.direction : false}>
+              <TableSortLabel
+                active={sort.field === 'name'}
+                direction={sort.field === 'name' ? sort.direction : 'asc'}
+                onClick={() => handleSort('name')}
+              >
+                <b>Name</b>
+              </TableSortLabel>
+            </TableCell>
+
+            <TableCell sortDirection={sort.field === 'surname' ? sort.direction : false}>
+              <TableSortLabel
+                active={sort.field === 'surname'}
+                direction={sort.field === 'surname' ? sort.direction : 'asc'}
+                onClick={() => handleSort('surname')}
+              >
+                <b>Surname</b>
+              </TableSortLabel>
+            </TableCell>
+
+            <TableCell sortDirection={sort.field === 'age' ? sort.direction : false}>
+              <TableSortLabel
+                active={sort.field === 'age'}
+                direction={sort.field === 'age' ? sort.direction : 'asc'}
+                onClick={() => handleSort('age')}
+              >
+                <b>Age</b>
+              </TableSortLabel>
+            </TableCell>
+
+            <TableCell sortDirection={sort.field === 'email' ? sort.direction : false}>
+              <TableSortLabel
+                active={sort.field === 'email'}
+                direction={sort.field === 'email' ? sort.direction : 'asc'}
+                onClick={() => handleSort('email')}
+              >
+                <b>Email</b>
+              </TableSortLabel>
+            </TableCell>
+
             <TableCell><b>Actions</b></TableCell>
             <TableCell></TableCell>
           </TableRow>
         </TableHead>
 
         <TableBody>
-          {filteredUsers.map(user => (
+          {sortedUsers.map(user => (
             <User
               key={user.id}
               userProp={user}

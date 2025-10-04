@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { TableCell, TableRow, TextField, Button, Checkbox } from '@mui/material'
+
 const BASE_URL = 'https://68d45231214be68f8c6902f0.mockapi.io/users'
 
 const User = ({
@@ -7,7 +8,6 @@ const User = ({
   onUpdated = () => {},
   onDelete = () => {},
   deleting = false,
-  // NEW:
   selected = false,
   onToggleSelect = () => {},
 }) => {
