@@ -1,25 +1,34 @@
 import React, { useState, useEffect } from 'react'
-import { TableCell, TableRow, TextField, Button, Checkbox } from '@mui/material'
+import {
+  TableCell,
+  TableRow,
+  TextField,
+  Button,
+  Checkbox,
+  Stack,
+  Tooltip,
+  Chip,
+  IconButton,
+} from '@mui/material'
+import EditIcon from '@mui/icons-material/Edit'
+import DeleteIcon from '@mui/icons-material/Delete'
+import SaveIcon from '@mui/icons-material/Save'
+import CloseIcon from '@mui/icons-material/Close'
 
-const User = ({
+export default function User({
   userProp,
   selected = false,
   onToggleSelect = () => {},
-  onSave = () => {},      // <-- NEW: сохраняем наверх
+  onSave = () => {},
   onDelete = () => {},
   deleting = false,
-}) => {
+}) {
   const [isEditing, setIsEditing] = useState(false)
   const [editUserData, setEditUserData] = useState({ ...userProp })
 
   useEffect(() => {
     if (!isEditing) setEditUserData({ ...userProp })
   }, [userProp, isEditing])
-
-  const handleEditUser = () => {
-    setEditUserData({ ...userProp })
-    setIsEditing((prev) => !prev)
-  }
 
   const handleChangeEditUser = (e) => {
     const { name, value } = e.target
@@ -28,13 +37,18 @@ const User = ({
 
   const handleSave = async () => {
     if (!editUserData.name || !editUserData.surname || !editUserData.email) return
-    await onSave(editUserData)       // делегируем наверх
+    await onSave(editUserData)
     setIsEditing(false)
   }
 
   return (
-    <TableRow key={userProp.id} hover>
-      {/* Selection */}
+    <TableRow
+      hover
+      sx={{
+        '&:nth-of-type(odd)': { backgroundColor: 'action.hover' },
+      }}
+    >
+      {/* Checkbox for selection */}
       <TableCell width={56}>
         <Checkbox
           checked={selected}
@@ -46,51 +60,92 @@ const User = ({
       {isEditing ? (
         <>
           <TableCell>
-            <TextField name="name" size="small" value={editUserData.name} onChange={handleChangeEditUser} />
+            <TextField
+              name="name"
+              size="small"
+              value={editUserData.name}
+              onChange={handleChangeEditUser}
+            />
           </TableCell>
           <TableCell>
-            <TextField name="surname" size="small" value={editUserData.surname} onChange={handleChangeEditUser} />
+            <TextField
+              name="surname"
+              size="small"
+              value={editUserData.surname}
+              onChange={handleChangeEditUser}
+            />
           </TableCell>
           <TableCell>
-            <TextField name="age" size="small" value={editUserData.age} onChange={handleChangeEditUser} />
+            <TextField
+              name="age"
+              size="small"
+              value={editUserData.age}
+              onChange={handleChangeEditUser}
+            />
           </TableCell>
           <TableCell>
-            <TextField name="email" size="small" value={editUserData.email} onChange={handleChangeEditUser} />
+            <TextField
+              name="email"
+              size="small"
+              value={editUserData.email}
+              onChange={handleChangeEditUser}
+            />
           </TableCell>
           <TableCell sx={{ display: 'flex', gap: 1 }}>
-            <Button variant="contained" size="small" color="success" onClick={handleSave}>SAVE</Button>
             <Button
+              startIcon={<SaveIcon />}
+              variant="contained"
+              size="small"
+              color="success"
+              onClick={handleSave}
+            >
+              Save
+            </Button>
+            <Button
+              startIcon={<CloseIcon />}
               variant="outlined"
               color="error"
               size="small"
-              onClick={() => { setEditUserData({ ...userProp }); setIsEditing(false) }}
+              onClick={() => {
+                setEditUserData({ ...userProp })
+                setIsEditing(false)
+              }}
             >
-              CANCEL
+              Cancel
             </Button>
           </TableCell>
         </>
       ) : (
         <>
-          <TableCell>{userProp.name}</TableCell>
+          <TableCell sx={{ fontWeight: 600 }}>{userProp.name}</TableCell>
           <TableCell>{userProp.surname}</TableCell>
-          <TableCell>{userProp.age}</TableCell>
+          <TableCell>
+            <Chip label={userProp.age ?? '-'} size="small" />
+          </TableCell>
           <TableCell>{userProp.email}</TableCell>
-          <TableCell style={{ display: 'flex', gap: '5px' }}>
-            <Button variant="contained" size="small" onClick={handleEditUser}>EDIT</Button>
-            <Button
-              variant="contained"
-              size="small"
-              color="error"
-              onClick={onDelete}
-              disabled={deleting}
-            >
-              {deleting ? 'DELETING…' : 'DELETE'}
-            </Button>
+          <TableCell>
+            <Stack direction="row" spacing={1}>
+              <Tooltip title="Edit">
+                <IconButton size="small" onClick={() => setIsEditing(true)}>
+                  <EditIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title={deleting ? 'Deleting…' : 'Delete'}>
+                <span>
+                  <IconButton
+                    size="small"
+                    color="error"
+                    onClick={onDelete}
+                    disabled={deleting}
+                  >
+                    <DeleteIcon fontSize="small" />
+                  </IconButton>
+                </span>
+              </Tooltip>
+            </Stack>
           </TableCell>
         </>
       )}
     </TableRow>
   )
 }
-
-export default User

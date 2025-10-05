@@ -1,5 +1,6 @@
-import { Toolbar, Stack, Typography, TextField, Slider, IconButton, Button } from '@mui/material'
+import { Toolbar, Stack, Typography, TextField, Slider, IconButton, Button, InputAdornment } from '@mui/material'
 import ClearIcon from '@mui/icons-material/Clear'
+import SearchIcon from '@mui/icons-material/Search'
 
 export default function FiltersBar({
   search, onSearchChange,
@@ -9,7 +10,15 @@ export default function FiltersBar({
   selectedCount, onDeleteSelected, bulkDeleting,
 }) {
   return (
-    <Toolbar disableGutters sx={{ gap: 2, flexWrap: 'wrap', overflow: 'visible' }}>
+    <Toolbar
+      disableGutters
+      sx={{
+        gap: 2,
+        flexWrap: 'wrap',
+        overflow: 'visible',
+        alignItems: 'center',
+      }}
+    >
       <Typography variant="h6" sx={{ mr: 'auto' }}>Users</Typography>
 
       <TextField
@@ -18,13 +27,20 @@ export default function FiltersBar({
         placeholder="Type to filter…"
         value={search}
         onChange={(e) => onSearchChange(e.target.value)}
-        sx={{ minWidth: 300 }}
+        sx={{ minWidth: 320 }}
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <SearchIcon fontSize="small" />
+            </InputAdornment>
+          ),
+        }}
       />
 
       <Stack direction="row" spacing={2} alignItems="center" sx={{ overflow: 'visible' }}>
         <Typography variant="body2" sx={{ whiteSpace: 'nowrap' }}>Age:</Typography>
         <Slider
-          sx={{ width: 200, overflow: 'visible' }}
+          sx={{ width: 220, overflow: 'visible' }}
           value={ageRange}
           min={minAge} max={maxAge}
           onChange={(_, v) => onAgeChange(v)}
@@ -37,11 +53,12 @@ export default function FiltersBar({
       </Stack>
 
       <Button
-        variant="outlined" color="error"
+        variant="outlined"
+        color="error"
         onClick={onDeleteSelected}
         disabled={selectedCount === 0 || bulkDeleting}
       >
-        {bulkDeleting ? 'DELETING…' : `DELETE SELECTED (${selectedCount})`}
+        {bulkDeleting ? 'Deleting…' : `Delete Selected (${selectedCount})`}
       </Button>
     </Toolbar>
   )

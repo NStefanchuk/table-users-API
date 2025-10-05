@@ -1,7 +1,12 @@
+import { CssBaseline, ThemeProvider } from '@mui/material'
 import UsersPage from './components/UsersPage'
+import theme from './theme'
 
-function App() {
-  return <UsersPage />
+export default function App() {
+  return (
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <UsersPage />
+    </ThemeProvider>
+  )
 }
-
-export default App

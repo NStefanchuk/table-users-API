@@ -1,7 +1,8 @@
 import {
   Table, TableBody, TableCell, TableHead, TableRow,
-  TextField, Button, Checkbox, TableSortLabel
+  TextField, Button, Checkbox, TableSortLabel, Stack
 } from '@mui/material'
+import AddIcon from '@mui/icons-material/Add'
 import User from './User'
 
 export default function UsersTable({
@@ -15,8 +16,12 @@ export default function UsersTable({
   const allVisibleSelected = rows.length > 0 && rows.every(u => selectedIds.has(u.id))
   const someVisibleSelected = rows.some(u => selectedIds.has(u.id)) && !allVisibleSelected
 
-  const headCell = (field, label) => (
-    <TableCell sortDirection={sort.field === field ? sort.direction : false}>
+  const headCell = (field, label, align) => (
+    <TableCell
+      sortDirection={sort.field === field ? sort.direction : false}
+      align={align}
+      sx={{ position: 'sticky', top: 0, background: 'background.paper', zIndex: 1 }}
+    >
       <TableSortLabel
         active={sort.field === field}
         direction={sort.field === field ? sort.direction : 'asc'}
@@ -28,10 +33,13 @@ export default function UsersTable({
   )
 
   return (
-    <Table>
+    <Table size="small" stickyHeader>
       <TableHead>
         <TableRow>
-          <TableCell width={56}>
+          <TableCell
+            width={56}
+            sx={{ position: 'sticky', top: 0, background: 'background.paper', zIndex: 2 }}
+          >
             <Checkbox
               indeterminate={someVisibleSelected}
               checked={allVisibleSelected}
@@ -43,12 +51,22 @@ export default function UsersTable({
           {headCell('surname', 'Surname')}
           {headCell('age', 'Age')}
           {headCell('email', 'Email')}
-          <TableCell><b>Actions</b></TableCell>
-          <TableCell></TableCell>
+          <TableCell sx={{ position: 'sticky', top: 0, background: 'background.paper', zIndex: 1 }}>
+            <b>Actions</b>
+          </TableCell>
+          <TableCell sx={{ position: 'sticky', top: 0, background: 'background.paper' }} />
         </TableRow>
       </TableHead>
 
       <TableBody>
+        {rows.length === 0 && (
+          <TableRow>
+            <TableCell colSpan={6} align="center" sx={{ py: 6, opacity: 0.7 }}>
+              No users match your filters.
+            </TableCell>
+          </TableRow>
+        )}
+
         {rows.map(user => (
           <User
             key={user.id}
@@ -77,7 +95,11 @@ export default function UsersTable({
             <TextField size="small" label="Email" name="email" value={newUser.email} onChange={onChangeNewUser} />
           </TableCell>
           <TableCell>
-            <Button variant="contained" color="success" onClick={onAddUser}>ADD</Button>
+            <Stack direction="row" spacing={1}>
+              <Button startIcon={<AddIcon />} variant="contained" color="success" onClick={onAddUser}>
+                Add
+              </Button>
+            </Stack>
           </TableCell>
         </TableRow>
       </TableBody>

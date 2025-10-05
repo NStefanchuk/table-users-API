@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Paper, TableContainer, Box } from '@mui/material'
+import { Paper, TableContainer, Box, LinearProgress } from '@mui/material'
 import FiltersBar from './FiltersBar'
 import UsersTable from './UsersTable'
 import { useUsers } from '../hooks/useUsers'
@@ -7,7 +7,7 @@ import { useUsers } from '../hooks/useUsers'
 const norm = (s = '') => String(s).toLowerCase().trim()
 
 export default function UsersPage() {
-  const { users, createUser, updateUser, removeUser, removeMany } = useUsers()
+  const { users, createUser, updateUser, removeUser, removeMany, loading } = useUsers()
 
   // filters
   const [search, setSearch] = useState('')
@@ -29,7 +29,6 @@ export default function UsersPage() {
   const [busyId, setBusyId] = useState(null)
   const [bulkDeleting, setBulkDeleting] = useState(false)
 
-  const isSelected = (id) => selectedIds.has(id)
   const toggleSelect = (id) => {
     setSelectedIds(prev => {
       const next = new Set(prev)
@@ -160,8 +159,16 @@ export default function UsersPage() {
   }
 
   return (
-    <TableContainer component={Paper} sx={{ maxWidth: 900, m: '20px auto', overflow: 'visible' }}>
-      <Box sx={{ px: 2, pt: 2, overflow: 'visible' }}>
+    <TableContainer
+      component={Paper}
+      sx={{
+        maxWidth: 980,
+        m: '20px auto',
+        overflow: 'visible',
+        boxShadow: '0 8px 30px rgba(0,0,0,.08)',
+      }}
+    >
+      <Box sx={{ px: 2.5, pt: 2.5, overflow: 'visible' }}>
         <FiltersBar
           search={search} onSearchChange={setSearch}
           ageRange={safeAgeRange} onAgeChange={setAgeRange}
@@ -172,6 +179,8 @@ export default function UsersPage() {
           bulkDeleting={bulkDeleting}
         />
       </Box>
+
+      {loading && <LinearProgress />}
 
       <UsersTable
         rows={sortedUsers}
