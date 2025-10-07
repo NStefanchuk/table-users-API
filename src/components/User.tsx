@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, ChangeEvent } from 'react'
 import {
   TableCell,
   TableRow,
@@ -15,28 +15,53 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import SaveIcon from '@mui/icons-material/Save'
 import CloseIcon from '@mui/icons-material/Close'
 
-export default function User({
+export interface UserData {
+  id: string
+  name: string
+  surname: string
+  age: number
+  email: string
+}
+
+interface UserProps {
+  userProp: UserData
+  selected?: boolean
+  onToggleSelect?: () => void
+  onSave?: (data: UserData) => Promise<void> | void
+  onDelete?: () => Promise<void> | void
+  deleting?: boolean
+}
+
+const User: React.FC<UserProps> = ({
   userProp,
   selected = false,
   onToggleSelect = () => {},
   onSave = () => {},
   onDelete = () => {},
   deleting = false,
-}) {
+}) => {
   const [isEditing, setIsEditing] = useState(false)
-  const [editUserData, setEditUserData] = useState({ ...userProp })
+  const [editUserData, setEditUserData] = useState<UserData>({ ...userProp })
 
   useEffect(() => {
     if (!isEditing) setEditUserData({ ...userProp })
   }, [userProp, isEditing])
 
-  const handleChangeEditUser = (e) => {
+  const handleChangeEditUser = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
-    setEditUserData({ ...editUserData, [name]: value })
+    setEditUserData((prev) => ({
+      ...prev,
+      [name]: name === 'age' ? Number(value) || 0 : value,
+    }))
   }
 
   const handleSave = async () => {
-    if (!editUserData.name || !editUserData.surname || !editUserData.email) return
+    if (
+      !editUserData.name.trim() ||
+      !editUserData.surname.trim() ||
+      !editUserData.email.trim()
+    )
+      return
     await onSave(editUserData)
     setIsEditing(false)
   }
@@ -53,7 +78,9 @@ export default function User({
         <Checkbox
           checked={selected}
           onChange={onToggleSelect}
-          inputProps={{ 'aria-label': `Select ${userProp.name} ${userProp.surname}` }}
+          inputProps={{
+            'aria-label': `Select ${userProp.name} ${userProp.surname}`,
+          }}
         />
       </TableCell>
 
@@ -149,3 +176,5 @@ export default function User({
     </TableRow>
   )
 }
+
+export default User
