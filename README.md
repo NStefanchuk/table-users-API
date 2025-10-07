@@ -1,16 +1,46 @@
-# React + Vite
+# Table Users — CRUD UI for a Users API
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A sleek and intuitive interface for managing users in a dynamic table. Add, edit, and delete records seamlessly with instant updates and smooth user experience.
 
-Currently, two official plugins are available:
+## 🛠 Tech Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+![React](https://img.shields.io/badge/-React-61DAFB?logo=react&logoColor=000&style=for-the-badge)
+![Vite](https://img.shields.io/badge/-Vite-646CFF?logo=vite&logoColor=white&style=for-the-badge)
+![TypeScript](https://img.shields.io/badge/-TypeScript-3178C6?logo=typescript&logoColor=white&style=for-the-badge)
+![Material UI](https://img.shields.io/badge/-Material%20UI-007FFF?logo=mui&logoColor=white&style=for-the-badge)
+![Fetch API](https://img.shields.io/badge/-Fetch_API-02569B?logo=javascript&logoColor=white&style=for-the-badge)
+![ESLint](https://img.shields.io/badge/-ESLint-4B32C3?logo=eslint&logoColor=white&style=for-the-badge)
+![Prettier](https://img.shields.io/badge/-Prettier-F7B93E?logo=prettier&logoColor=000&style=for-the-badge)
+![GitHub](https://img.shields.io/badge/-GitHub-181717?logo=github&logoColor=white&style=for-the-badge)
 
-## React Compiler
+## 🌐 Live Demo
 
-The React Compiler is not enabled on this template. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+_Coming soon_
 
-## Expanding the ESLint configuration
+## ✨ Features
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- Persistent data storage via [MockAPI](https://mockapi.io)  
+- Add new users via a simple form  
+- Edit users inline directly in the table  
+- Delete users instantly or remove multiple users at once  
+- Sort and filter data using Material UI components  
+- Basic input validation and responsive UI  
+- Clean, minimal design  
+
+**🧩 In development:**  
+- Bulk import of users from external sources  
+- Migration of all components to TypeScript  
+
+## 🖼 Screenshot
+
+_Coming soon_
+
+## 🚀 Getting Started
+
+Clone the project and run it locally:
+
+```bash
+git clone https://github.com/NStefanchuk/table-users-API.git
+cd table-users-API
+npm install
+npm run dev
